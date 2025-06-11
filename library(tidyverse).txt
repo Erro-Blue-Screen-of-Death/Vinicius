@@ -1,0 +1,36 @@
+library(tidyverse)
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+
+PS4 <- read.csv("PS4_GamesSales.csv")
+
+sales_clean <- read.csv("PS4_GamesSales.csv") %>%
+  mutate(Year = as.numeric(Year)) %>%
+  filter(Genre %in% c("Action", "Sports"), !is.na(Year), !is.na(Global))
+
+sales_by_year <- sales_clean %>%
+  group_by(Year, Genre) %>%
+  summarise(Global_Sales = sum(Global, na.rm = TRUE), .groups = "drop") %>%
+  filter(Year >= 2013 & Year <= 2020)
+
+ggplot(sales_by_year, aes(Year, Global_Sales, fill = Genre)) +
+  geom_col() +
+  labs(title = "Vendas por Ano - Jogos PS4",
+       x = "Ano", y = "Vendas (milhões)", fill = "Gênero") +
+  scale_x_continuous(breaks = 2013:2020) +
+  scale_y_continuous(labels = scales::comma) +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5, face = "bold"),
+        axis.text.x = element_text(angle = 45),
+        legend.position = "bottom")
+
+print("Top 5 jogos de Action:")
+print(sales_clean %>% filter(Genre == "Action") %>% 
+        arrange(desc(Global)) %>% head(5) %>% 
+        select(Game, Year, Publisher, Global))
+
+print("Top 5 jogos de Sports:")
+print(sales_clean %>% filter(Genre == "Sports") %>% 
+        arrange(desc(Global)) %>% head(5) %>% 
+        select(Game, Year, Publisher, Global))
